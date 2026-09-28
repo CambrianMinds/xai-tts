@@ -100,8 +100,8 @@ code, pre {
   top: 0;
   z-index: 1000;
   background: rgba(10, 13, 20, 0.85);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
   padding: 0.85rem 1.5rem;
   transition: var(--transition);
@@ -330,6 +330,7 @@ code, pre {
 
 .feature-card {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -501,6 +502,7 @@ code, pre {
   font-size: 0.85rem;
   cursor: pointer;
   color: var(--text-main);
+  -webkit-user-select: none;
   user-select: none;
 }
 
