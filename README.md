@@ -61,6 +61,13 @@
 
 ### 2. Installation
 
+**One-line installation (Windows PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/cambrianminds/xai-tts/main/install.ps1 | iex
+```
+
+**Or install manually:**
+
 Clone this repository:
 ```bash
 git clone https://github.com/cambrianminds/xai-tts.git
