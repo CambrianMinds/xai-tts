@@ -17,7 +17,7 @@ class XAITTSApp(App):
     #left-panel {
         width: 25%;
         height: 100%;
-        border-right: solid green;
+        border-right: solid $primary;
         padding: 1;
     }
     #center-panel {
@@ -28,7 +28,7 @@ class XAITTSApp(App):
     #right-panel {
         width: 20%;
         height: 100%;
-        border-left: solid green;
+        border-left: solid $primary;
         padding: 1;
     }
     .field {
@@ -98,12 +98,22 @@ class XAITTSApp(App):
                 self.voice_select.disabled = True
                 yield self.voice_select
                 
+                yield Label("Format & Language", classes="field")
+                with Horizontal():
+                    self.format_select = Select([("MP3", "mp3"), ("WAV", "wav"), ("FLAC", "flac")], value="mp3", classes="field")
+                    self.lang_select = Select([("English", "en"), ("Spanish", "es"), ("French", "fr")], value="en", classes="field")
+                    yield self.format_select
+                    yield self.lang_select
+
                 yield Label("Speed Multiplier", classes="field")
                 self.speed_input = Input(value="1.0", placeholder="1.0", classes="field")
                 yield self.speed_input
                 
                 self.dry_run_checkbox = Checkbox("Dry Run (Simulate API)", value=True, classes="field")
                 yield self.dry_run_checkbox
+                
+                self.play_checkbox = Checkbox("Auto-play Output", value=True, classes="field")
+                yield self.play_checkbox
                 
                 self.synth_button = Button("Synthesize Audio", variant="success", id="btn-synthesize")
                 yield self.synth_button
@@ -113,6 +123,9 @@ class XAITTSApp(App):
                 yield Label("Text to Synthesize:")
                 self.text_editor = TextArea("Hello! [pause] This is a <whisper>general purpose</whisper> TTS studio.", id="text-editor")
                 yield self.text_editor
+                
+                self.char_count = Label("Characters: 73", id="char-count")
+                yield self.char_count
                 
                 yield Label("Output Logs:")
                 self.log_widget = Log(id="log")
@@ -174,14 +187,14 @@ class XAITTSApp(App):
             response.raise_for_status()
             voices = response.json().get("voices", [])
             
-            if not any(v.get('voice_id') == 'rex' for v in voices):
-                voices.insert(0, {"voice_id": "rex", "name": "Rex", "gender": "male"})
-            if not any(v.get('voice_id') == 'eve' for v in voices):
-                voices.insert(0, {"voice_id": "eve", "name": "Eve", "gender": "female"})
-            if not any(v.get('voice_id') == 'aria' for v in voices):
-                voices.insert(0, {"voice_id": "aria", "name": "Aria", "gender": "female"})
-            if not any(v.get('voice_id') == 'orion' for v in voices):
-                voices.insert(0, {"voice_id": "orion", "name": "Orion", "gender": "male"})
+            for default_v in [
+                {"voice_id": "orion", "name": "Orion", "gender": "male"},
+                {"voice_id": "aria", "name": "Aria", "gender": "female"},
+                {"voice_id": "eve", "name": "Eve", "gender": "female"},
+                {"voice_id": "rex", "name": "Rex", "gender": "male"}
+            ]:
+                if not any(v.get('voice_id') == default_v['voice_id'] for v in voices):
+                    voices.insert(0, default_v)
                 
             self.app.call_from_thread(self.update_voice_select, voices)
         except Exception as e:
@@ -247,6 +260,10 @@ class XAITTSApp(App):
         if event.select == self.gender_filter:
             self.apply_voice_filter()
 
+    def on_text_area_changed(self, event) -> None:
+        if event.text_area.id == "text-editor" and hasattr(self, "char_count"):
+            self.char_count.update(f"Characters: {len(event.text_area.text)}")
+
     def on_input_changed(self, event: Input.Changed) -> None:
         # Re-fetch voices if API key changes and we haven't fetched real ones yet
         if event.input == self.api_input and len(event.input.value) > 20:
@@ -304,10 +321,19 @@ class XAITTSApp(App):
         voice = self.voice_select.value or "rex"
         try:
             speed = float(self.speed_input.value)
+            speed = max(0.25, min(4.0, speed))
+            self.speed_input.value = str(speed)
         except ValueError:
             speed = 1.0
         
+        fmt = getattr(self, "format_select", None)
+        lang = getattr(self, "lang_select", None)
+        out_fmt = fmt.value if fmt else "mp3"
+        out_lang = lang.value if lang else "en"
+        
         dry_run = self.dry_run_checkbox.value
+        auto_play = getattr(self, "play_checkbox", None)
+        should_play = auto_play.value if auto_play else False
         
         self.log_widget.write_line("-" * 40)
         self.log_widget.write_line(f"Starting synthesis (chars: {len(text)})...")
@@ -315,10 +341,10 @@ class XAITTSApp(App):
         
         self.synth_button.disabled = True
         
-        self.run_tts_worker(api_key, text, out_path, voice, speed, dry_run)
+        self.run_tts_worker(api_key, text, out_path, voice, speed, dry_run, out_fmt, out_lang, should_play)
 
     @work(thread=True)
-    def run_tts_worker(self, api_key: str, text: str, out_path: str, voice: str, speed: float, dry_run: bool) -> None:
+    def run_tts_worker(self, api_key: str, text: str, out_path: str, voice: str, speed: float, dry_run: bool, out_fmt: str = "mp3", out_lang: str = "en", should_play: bool = False) -> None:
         class LogRedirector(io.StringIO):
             def __init__(self, app_ref):
                 super().__init__()
@@ -354,9 +380,9 @@ class XAITTSApp(App):
                     payload = {
                         "text": text,
                         "voice_id": voice,
-                        "language": "en",
+                        "language": out_lang,
                         "output_format": {
-                            "codec": "mp3",
+                            "codec": out_fmt,
                             "sample_rate": 44100,
                             "bit_rate": 192000
                         },
@@ -372,6 +398,15 @@ class XAITTSApp(App):
                         with open(out_path, "wb") as f:
                             f.write(response.content)
                         print(f"Successfully saved {len(response.content):,} bytes to {os.path.abspath(out_path)}")
+                        if should_play:
+                            print(f"Playing audio: {out_path}")
+                            import subprocess, sys
+                            if sys.platform == "win32":
+                                os.startfile(out_path)
+                            elif sys.platform == "darwin":
+                                subprocess.Popen(["open", out_path])
+                            else:
+                                subprocess.Popen(["xdg-open", out_path])
             except Exception as e:
                 print(f"Exception during synthesis: {e}")
 
