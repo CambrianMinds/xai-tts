@@ -46,8 +46,9 @@
 |  [X] Dry Run (Simulate)  |  | [12:00:02] Fetching voices from xAI...    |  |  [<loud>]             |
 |                          |  | [12:00:03] Voices ready.                  |  |                       |
 |  [ Synthesize Audio ]    |  +-------------------------------------------+  |  ... (18+ tags)       |
+|                          |  [🔍 Preview Selected Text]                     |                       |
 +--------------------------+-------------------------------------------------+-----------------------+
-| q Quit | d Toggle Dark Mode                                                                        |
+| q Quit | d Toggle Dark Mode | ctrl+s Synthesize | p Insert Pause                                 |
 +----------------------------------------------------------------------------------------------------+
 ```
 
@@ -178,6 +179,8 @@ Highlight text in the editor and click the button to wrap phrases in prosody tag
 |---|---|
 | `q` | Quit application |
 | `d` | Toggle dark / light mode |
+| `ctrl+s` | Synthesize Audio |
+| `p` | Insert [pause] tag at cursor |
 | `Tab` / `Shift+Tab` | Navigate between panels and controls |
 | `Enter` | Activate selected button or focus input |
 
@@ -209,14 +212,14 @@ curl -X POST https://api.x.ai/v1/tts \
 
 ## 🛠️ Architecture
 
-- **`app.py`**:
+- **`xai_tts/ui/app.py`**:
   - `XAITTSApp(App)`: Core Textual application class.
-  - `compose()`: Declarative UI tree defining the 3 horizontal panels (`left-panel`, `center-panel`, `right-panel`).
-  - `on_mount()`: Auto-discovers API key from environment / Windows Registry and triggers thread-based voice discovery.
-  - `fetch_voices()`: Threaded worker querying `/v1/tts/voices` with automatic fallback injection.
-  - `apply_voice_filter()`: Instant reactive filtering by gender.
-  - `on_button_pressed()`: Handles synthesis dispatch and cursor/selection tag insertion in `TextArea`.
-  - `run_tts_worker()`: Background HTTP worker running via `@work(thread=True)` with redirected console logs.
+  - `compose()`: Declarative UI tree importing `SettingsPanel`, `EditorPanel`, `TagsPanel`.
+  - `fetch_voices()`: Async worker fetching voices using `httpx`.
+  - `run_tts_task()`: Background HTTP worker running via `@work(exclusive=True)`.
+- **`xai_tts/api.py`**: Clean, async `httpx` wrapper for the xAI API.
+- **`xai_tts/config.py`**: Manages app state, auto-saving to `~/.xai_tts/config.yaml`, and tracking synthesis history.
+- **`xai_tts/tags.py`**: Dictionary of all supported tags and their insertion logic.
 
 ---
 

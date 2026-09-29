@@ -183,7 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiKey = (apiKeyInput && apiKeyInput.value.trim()) ? apiKeyInput.value.trim() : 'xai-your-api-key';
 
     if (charCount) {
-      charCount.textContent = `${text.length} chars`;
+      const chars = text.length;
+      const cost = ((chars / 1000000) * 15.0).toFixed(5);
+      charCount.textContent = `Characters: ${chars} | Est. Cost: $${cost}`;
     }
 
     const payloadObj = {

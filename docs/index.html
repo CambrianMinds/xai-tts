@@ -107,7 +107,7 @@
       <div class="feature-card">
         <div class="feature-icon">🧵</div>
         <h3>Asynchronous Background Worker</h3>
-        <p>Synthesis runs in a non-blocking background thread so the UI never hangs. Terminal stdout and stderr are cleanly redirected to the in-app monitor.</p>
+        <p>Synthesis runs in a non-blocking <code>async</code> worker so the UI never hangs. API requests are handled efficiently using <code>httpx</code>.</p>
       </div>
 
       <div class="feature-card">
@@ -196,10 +196,14 @@
           <div class="tui-textarea-wrap">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
               <span class="tui-label">Text to Synthesize:</span>
-              <span id="charCount" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-subtle);">69 chars</span>
+              <span id="charCount" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-subtle);">Characters: 69 | Est. Cost: $0.00103</span>
             </div>
             <textarea id="studioTextarea" class="tui-textarea" spellcheck="false" title="Text to Synthesize" placeholder="Enter text to synthesize...">Hello! [pause] This is a <whisper>general purpose</whisper> TTS studio.</textarea>
           </div>
+          
+          <button id="btnPreview" class="btn-synth" style="background: var(--bg-surface); color: #fff; margin-bottom: 1rem;">
+            <span>🔍</span> Preview Selected Text
+          </button>
 
           <div class="visualizer-card">
             <div class="visualizer-header">
@@ -337,7 +341,7 @@
 
       <!-- TUI Footer Status Bar -->
       <div class="tui-footer-bar">
-        <div><span class="shortcut-badge">q</span> Quit &nbsp;|&nbsp; <span class="shortcut-badge">d</span> Toggle Dark Mode</div>
+        <div><span class="shortcut-badge">q</span> Quit &nbsp;|&nbsp; <span class="shortcut-badge">d</span> Toggle Dark Mode &nbsp;|&nbsp; <span class="shortcut-badge">ctrl+s</span> Synthesize &nbsp;|&nbsp; <span class="shortcut-badge">p</span> Insert Pause</div>
         <div>xAI API TTS Engine • Output: MP3 44.1kHz 192kbps</div>
       </div>
     </div>
