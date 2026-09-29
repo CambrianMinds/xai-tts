@@ -22,6 +22,9 @@
 - **🛡️ Dry Run Mode**: Validate formatting, check speed parameters, and simulate requests without spending API credits.
 - **🧵 Asynchronous Background Worker**: Synthesis runs in a non-blocking `async` worker via Textual and `httpx`, keeping the UI perfectly responsive.
 - **🎛️ Audio Export**: Direct export to high-quality MP3 (44.1 kHz, 192 kbps) with auto-creation of missing destination directories.
+- **📁 History & Projects**:
+  - Press `h` to browse past synthesizations and restore them.
+  - `ctrl+e` / `ctrl+o` to save/load full project state as JSON.
 
 ---
 

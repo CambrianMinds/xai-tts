@@ -10,6 +10,7 @@ COST_PER_1M_CHARS = 15.0  # Approx $15 per 1 million characters
 
 APP_DIR = Path.home() / ".xai_tts"
 SESSIONS_DIR = APP_DIR / "sessions"
+PROJECTS_DIR = APP_DIR / "projects"
 HISTORY_FILE = APP_DIR / "history.json"
 
 @dataclass
@@ -20,6 +21,8 @@ class SynthesisHistoryItem:
     output_path: str
     cost: float
     timestamp: str
+    format: str = "mp3"
+    language: str = "auto"
 
 @dataclass
 class AppConfig:
@@ -67,6 +70,10 @@ def add_history(item: SynthesisHistoryItem):
     history = history[-50:]
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump([asdict(h) for h in history], f, indent=2)
+
+def clear_history():
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f)
 
 def calculate_cost(text: str) -> float:
     return (len(text) / 1_000_000) * COST_PER_1M_CHARS

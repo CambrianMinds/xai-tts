@@ -96,9 +96,22 @@ class EditorPanel(Vertical):
         yield self.log_widget
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
-        text = event.text_area.text
-        self.char_count.update(f"Characters: {len(text)}")
-        cost = calculate_cost(text)
+        self._update_cost()
+
+    def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
+        self._update_cost()
+
+    def _update_cost(self) -> None:
+        selected = self.text_editor.selected_text
+        if selected:
+            chars = len(selected)
+            cost = calculate_cost(selected)
+            self.char_count.update(f"Selection: {chars}")
+        else:
+            text = self.text_editor.text
+            chars = len(text)
+            cost = calculate_cost(text)
+            self.char_count.update(f"Characters: {chars}")
         self.cost_est.update(f" | Est. Cost: ${cost:.5f}")
 
 

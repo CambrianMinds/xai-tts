@@ -15,3 +15,11 @@ Please observe the following rules:
 - When adding new speech tags, update both `xai_tts/tags.py` and the test suite in `tests/test_tags.py`.
 - Ensure changes are tested with `pytest tests/`.
 - Maintain the 3-panel UI design. Do not radically alter the Textual layout composition without explicit user consent.
+
+## Futures
+Do not implement the following without explicit direction:
+- Full file browser widgets
+- Streaming TTS
+- Custom voice cloning UI
+- Major visual redesign of the GitHub Pages site
+- Adding many new speech tags

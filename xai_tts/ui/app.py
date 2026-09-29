@@ -7,7 +7,7 @@ import asyncio
 import os
 import sys
 
-from xai_tts.config import AppConfig, SynthesisHistoryItem, add_history, calculate_cost
+from xai_tts.config import AppConfig, SynthesisHistoryItem, add_history, calculate_cost, APP_DIR
 from xai_tts.api import XAITTSAPI
 from xai_tts.ui.panels import SettingsPanel, EditorPanel, TagsPanel
 from xai_tts.ui.messages import APICredentialsUpdated
@@ -23,8 +23,8 @@ class XAITTSApp(App):
     .field { margin-bottom: 1; }
     #text-editor { height: 1fr; margin-bottom: 1; }
     Log { border: solid gray; height: 10; }
-    .tag-category { margin-top: 1; text-style: bold; color: yellow; }
-    .tag-btn { width: 100%; margin-bottom: 1; }
+    .tag-category { margin-top: 1; margin-bottom: 0; text-style: bold; color: yellow; }
+    .tag-btn { width: 100%; margin-bottom: 0; height: 1; border: none; padding: 0 1; }
     """
 
     BINDINGS = [
@@ -76,6 +76,25 @@ class XAITTSApp(App):
             self.config.api_key = api_key
             self.log_msg("Loaded API Key.")
             self.setup_api(api_key)
+
+    async def on_unmount(self) -> None:
+        last_session = APP_DIR / "last_session.json"
+        try:
+            speed_val = self.settings_panel.speed_input.value
+            data = {
+                "version": 1,
+                "text": self.editor_panel.text_editor.text,
+                "voice": self.settings_panel.voice_select.value,
+                "speed": float(speed_val) if speed_val else 1.0,
+                "output_path": self.settings_panel.output_input.value,
+                "format": self.settings_panel.format_select.value,
+                "language": self.settings_panel.lang_select.value,
+                "saved_at": datetime.now().isoformat()
+            }
+            with open(last_session, "w") as f:
+                json.dump(data, f, indent=4)
+        except Exception:
+            pass
 
     def log_msg(self, message: str) -> None:
         self.editor_panel.log_widget.write_line(message)
@@ -252,6 +271,10 @@ class XAITTSApp(App):
                 self.settings_panel.voice_select.value = item.voice
                 self.settings_panel.speed_input.value = str(item.speed)
                 self.settings_panel.output_input.value = item.output_path
+                if hasattr(item, "format") and item.format:
+                    self.settings_panel.format_select.value = item.format
+                if hasattr(item, "language") and item.language:
+                    self.settings_panel.lang_select.value = item.language
                 self.log_msg(f"Loaded history item from {item.timestamp}")
         self.push_screen(HistoryScreen(), check_history)
 
@@ -259,14 +282,18 @@ class XAITTSApp(App):
         def save_proj(path):
             if path:
                 try:
+                    speed_val = self.settings_panel.speed_input.value
                     data = {
+                        "version": 1,
                         "text": self.editor_panel.text_editor.text,
                         "voice": self.settings_panel.voice_select.value,
-                        "speed": self.settings_panel.speed_input.value,
+                        "speed": float(speed_val) if speed_val else 1.0,
                         "output_path": self.settings_panel.output_input.value,
                         "format": self.settings_panel.format_select.value,
-                        "language": self.settings_panel.lang_select.value
+                        "language": self.settings_panel.lang_select.value,
+                        "saved_at": datetime.now().isoformat()
                     }
+                    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
                     with open(path, "w") as f:
                         json.dump(data, f, indent=4)
                     self.log_msg(f"Project saved to {path}")
