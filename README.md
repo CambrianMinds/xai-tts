@@ -20,7 +20,7 @@
 - **🔑 Zero-Friction Auth**: Auto-detects `XAI_API_KEY` from system environment variables or the Windows Registry (`HKCU\Environment`).
 - **👥 Voice Discovery & Filtering**: Automatically fetches available voices from xAI API (`/v1/tts/voices`) with instant gender filtering (Male / Female / All) and built-in fallbacks (`rex`, `eve`, `aria`, `orion`).
 - **🛡️ Dry Run Mode**: Validate formatting, check speed parameters, and simulate requests without spending API credits.
-- **🧵 Asynchronous Background Worker**: Synthesis runs in a separate thread with real-time stdout/stderr redirection to an in-app log monitor.
+- **🧵 Asynchronous Background Worker**: Synthesis runs in a non-blocking `async` worker via Textual and `httpx`, keeping the UI perfectly responsive.
 - **🎛️ Audio Export**: Direct export to high-quality MP3 (44.1 kHz, 192 kbps) with auto-creation of missing destination directories.
 
 ---
@@ -48,7 +48,7 @@
 |  [ Synthesize Audio ]    |  +-------------------------------------------+  |  ... (18+ tags)       |
 |                          |  [🔍 Preview Selected Text]                     |                       |
 +--------------------------+-------------------------------------------------+-----------------------+
-| q Quit | d Toggle Dark Mode | ctrl+s Synthesize | p Insert Pause                                 |
+| q Quit | d Dark Mode | ctrl+s Synthesize | p Pause | h History | ctrl+o Load | ctrl+e Save       |
 +----------------------------------------------------------------------------------------------------+
 ```
 
@@ -181,6 +181,9 @@ Highlight text in the editor and click the button to wrap phrases in prosody tag
 | `d` | Toggle dark / light mode |
 | `ctrl+s` | Synthesize Audio |
 | `p` | Insert [pause] tag at cursor |
+| `h` | View Synthesis History |
+| `ctrl+o` | Load Project (.json) |
+| `ctrl+e` | Save Project (.json) |
 | `Tab` / `Shift+Tab` | Navigate between panels and controls |
 | `Enter` | Activate selected button or focus input |
 

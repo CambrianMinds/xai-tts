@@ -4,7 +4,7 @@ Please observe the following rules:
 
 ## Architecture
 
-- The application uses `textual` for the UI, located in `xai_tts/ui/`.
+- The application uses `textual` for the UI, located in `xai_tts/ui/`. Panels are in `panels.py`, modals in `screens.py`, and the main layout in `app.py`.
 - All background tasks and async calls must use `httpx` (in `xai_tts/api.py`). Do not use `requests` or `urllib`.
 - Audio playback prefers `pygame` instead of platform-specific OS processes.
 - Configuration and history are stored in `~/.xai_tts/` (managed by `xai_tts/config.py`).

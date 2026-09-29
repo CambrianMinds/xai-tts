@@ -11,6 +11,8 @@ from xai_tts.config import AppConfig, SynthesisHistoryItem, add_history, calcula
 from xai_tts.api import XAITTSAPI
 from xai_tts.ui.panels import SettingsPanel, EditorPanel, TagsPanel
 from xai_tts.ui.messages import APICredentialsUpdated
+from xai_tts.ui.screens import HistoryScreen, SaveProjectScreen, LoadProjectScreen
+import json
 
 class XAITTSApp(App):
     CSS = """
@@ -30,6 +32,9 @@ class XAITTSApp(App):
         ("d", "toggle_dark", "Toggle Dark Mode"),
         ("ctrl+s", "synthesize", "Synthesize"),
         ("p", "insert_pause", "Insert Pause"),
+        ("h", "show_history", "History"),
+        ("ctrl+o", "load_project", "Load Project"),
+        ("ctrl+e", "save_project", "Save Project"),
     ]
 
     def __init__(self):
@@ -239,6 +244,55 @@ class XAITTSApp(App):
                 self.log_msg(f"Synthesis failed: {e}")
             
         self.settings_panel.synth_button.disabled = False
+
+    def action_show_history(self) -> None:
+        def check_history(item):
+            if item:
+                self.editor_panel.text_editor.text = item.text
+                self.settings_panel.voice_select.value = item.voice
+                self.settings_panel.speed_input.value = str(item.speed)
+                self.settings_panel.output_input.value = item.output_path
+                self.log_msg(f"Loaded history item from {item.timestamp}")
+        self.push_screen(HistoryScreen(), check_history)
+
+    def action_save_project(self) -> None:
+        def save_proj(path):
+            if path:
+                try:
+                    data = {
+                        "text": self.editor_panel.text_editor.text,
+                        "voice": self.settings_panel.voice_select.value,
+                        "speed": self.settings_panel.speed_input.value,
+                        "output_path": self.settings_panel.output_input.value,
+                        "format": self.settings_panel.format_select.value,
+                        "language": self.settings_panel.lang_select.value
+                    }
+                    with open(path, "w") as f:
+                        json.dump(data, f, indent=4)
+                    self.log_msg(f"Project saved to {path}")
+                except Exception as e:
+                    self.log_msg(f"Error saving project: {e}")
+        self.push_screen(SaveProjectScreen(), save_proj)
+
+    def action_load_project(self) -> None:
+        def load_proj(path):
+            if path:
+                try:
+                    if os.path.exists(path):
+                        with open(path, "r") as f:
+                            data = json.load(f)
+                        self.editor_panel.text_editor.text = data.get("text", "")
+                        if "voice" in data: self.settings_panel.voice_select.value = data["voice"]
+                        if "speed" in data: self.settings_panel.speed_input.value = str(data["speed"])
+                        if "output_path" in data: self.settings_panel.output_input.value = data["output_path"]
+                        if "format" in data: self.settings_panel.format_select.value = data["format"]
+                        if "language" in data: self.settings_panel.lang_select.value = data["language"]
+                        self.log_msg(f"Project loaded from {path}")
+                    else:
+                        self.log_msg(f"Project file not found: {path}")
+                except Exception as e:
+                    self.log_msg(f"Error loading project: {e}")
+        self.push_screen(LoadProjectScreen(), load_proj)
 
     def play_audio(self, path):
         self.log_msg(f"Playing {path}")

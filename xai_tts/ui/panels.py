@@ -42,7 +42,11 @@ class SettingsPanel(Vertical):
                 ("French", "fr"), ("German", "de"), ("Italian", "it"),
                 ("Portuguese", "pt"), ("Russian", "ru"), ("Chinese", "zh"),
                 ("Japanese", "ja"), ("Korean", "ko"), ("Arabic", "ar"),
-                ("Hindi", "hi")
+                ("Hindi", "hi"), ("Turkish", "tr"), ("Dutch", "nl"), 
+                ("Polish", "pl"), ("Swedish", "sv"), ("Indonesian", "id"), 
+                ("Vietnamese", "vi"), ("Tagalog", "tl"), ("Ukrainian", "uk"), 
+                ("Greek", "el"), ("Czech", "cs"), ("Danish", "da"), 
+                ("Finnish", "fi"), ("Romanian", "ro")
             ], value=self.config.default_language, classes="field")
             yield self.format_select
             yield self.lang_select
